@@ -34,7 +34,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.6.0"
+          version: "6.5.3"
           arch: ${{ matrix.qt_arch }}
 
       - name: Set up MSVC (Windows only)
