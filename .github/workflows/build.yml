@@ -52,9 +52,9 @@ jobs:
       - name: Windows Deployment
         if: runner.os == 'Windows'
         run: |
-          windeployqt --qmldir ./ build/my_app.exe
+          windeployqt --qmldir ./ build /my_app.exe
           # Create a zip for easy download
-          powershell Compress-Archive -Path build/Release/* -DestinationPath app-windows.zip
+          powershell Compress-Archive -Path build/* -DestinationPath app-windows.zip
 
       # MacOS Deployment
       - name: MacOS Deployment
