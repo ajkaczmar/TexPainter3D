@@ -1,0 +1,85 @@
+name: Build and Deploy Qt App
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: Build & Pack for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            qt_arch: gcc_64
+            artifact_name: linux-app
+          - os: windows-latest
+            qt_arch: win64_msvc2022_64
+            artifact_name: windows-app
+          - os: macos-latest
+            qt_arch: clang_64
+            artifact_name: macos-app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.6.0"
+          arch: ${{ matrix.qt_arch }}
+
+      - name: Set up MSVC (Windows only)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure and Build
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+
+      # --- DEPLOYMENT STEPS ---
+
+      # Windows Deployment
+      - name: Windows Deployment
+        if: runner.os == 'Windows'
+        run: |
+          windeployqt --qmldir ./ build/Release/my_app.exe
+          # Create a zip for easy download
+          powershell Compress-Archive -Path build/Release/* -DestinationPath app-windows.zip
+
+      # MacOS Deployment
+      - name: MacOS Deployment
+        if: runner.os == 'macOS'
+        run: |
+          macdeployqt build/my_app.app -qmldir=. -dmg
+          # This creates a .dmg file automatically
+
+      # Linux Deployment (using linuxdeployqt)
+      - name: Linux Deployment
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y libfuse2
+          wget -c -nv "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+          chmod a+x linuxdeployqt-continuous-x86_64.AppImage
+          # Build AppImage (requires a .desktop file in your project)
+          ./linuxdeployqt-continuous-x86_64.AppImage build/my_app -appimage -qmldir=.
+
+      # --- UPLOAD ARTIFACTS ---
+
+      - name: Upload Finished Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            *.zip
+            *.dmg
+            *.AppImage
