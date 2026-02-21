@@ -31,9 +31,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: List available Qt architectures
-        run: python -m aqt list-qt windows desktop 6.6.0
-
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
