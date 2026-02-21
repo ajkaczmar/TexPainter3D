@@ -19,7 +19,7 @@ jobs:
             qt_arch: gcc_64
             artifact_name: linux-app
           - os: windows-latest
-            qt_arch: win64_msvc2022_64
+            qt_arch: win64_msvc2019_64
             artifact_name: windows-app
           - os: macos-latest
             qt_arch: clang_64
@@ -35,16 +35,6 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: "6.6.0"
-          host: windows
-          target: desktop
-          arch: win64_msvc2022_64
-          dir: ${{ github.workspace }}/Qt
-          install-deps: 'true'
-          setup-python: 'false'
-
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: "6.5.3"
           arch: ${{ matrix.qt_arch }}
 
       - name: Set up MSVC (Windows only)
